@@ -15,6 +15,11 @@
     "react-router-dom": "latest",
     "react-hook-form": "latest",
     "framer-motion": "latest",
+    "@mui/material": "latest",
+    "@mui/x-data-grid": "latest",
+    "@mui/icons-material": "latest",
+    "@emotion/react": "latest",
+    "@emotion/styled": "latest",
     "lucide-react": "latest",
     "recharts": "latest",
     "clsx": "latest",
@@ -22,6 +27,7 @@
     "class-variance-authority": "latest"
   },
   "devDependencies": {
+    "@vitejs/plugin-react": "latest",
     "tailwindcss": "^3.4.17",
     "postcss": "latest",
     "autoprefixer": "latest"
