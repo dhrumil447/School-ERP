@@ -27,8 +27,11 @@ import TeacherDashboard from './pages/teacher/TeacherDashboard'
 // Placeholder pages
 import PlaceholderPage from './pages/PlaceholderPage'
 
+// Landing Page
+import Landing from './pages/Landing'
+
 const router = createBrowserRouter([
-  { path: '/', element: <Navigate to="/admin/login" replace /> },
+  { path: '/', element: <Landing /> },
   
   // Auth Routes
   { path: '/admin/login', element: <AdminLogin /> },

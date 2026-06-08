@@ -81,7 +81,7 @@ const PremiumKPICard = ({ label, value, icon: Icon, trend, trendUp, color, descr
   <motion.div whileHover={{ scale: 1.02, y: -4 }} transition={{ type: 'spring', stiffness: 300 }}>
     <Card
       sx={{
-        p: 2.5,
+        p: { xs: 1.5, sm: 2, md: 2.5 },
         background: color ? `linear-gradient(135deg, ${color[0]} 0%, ${color[1]} 100%)` : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         color: 'white',
         borderRadius: '16px',
@@ -106,17 +106,17 @@ const PremiumKPICard = ({ label, value, icon: Icon, trend, trendUp, color, descr
       }}
     >
       <Box sx={{ position: 'relative', zIndex: 1 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: { xs: 1, md: 2 } }}>
           <Box>
-            <Typography variant="caption" sx={{ opacity: 0.85, fontWeight: 500, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+            <Typography variant="caption" sx={{ opacity: 0.85, fontWeight: 500, letterSpacing: '0.5px', textTransform: 'uppercase', fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>
               {label}
             </Typography>
           </Box>
           {Icon && (
             <Box
               sx={{
-                width: 40,
-                height: 40,
+                width: { xs: 32, sm: 40 },
+                height: { xs: 32, sm: 40 },
                 borderRadius: '10px',
                 backgroundColor: 'rgba(255, 255, 255, 0.15)',
                 display: 'flex',
@@ -125,7 +125,7 @@ const PremiumKPICard = ({ label, value, icon: Icon, trend, trendUp, color, descr
                 backdropFilter: 'blur(10px)',
               }}
             >
-              <Icon sx={{ fontSize: '20px' }} />
+              <Icon sx={{ fontSize: { xs: '16px', sm: '20px' } }} />
             </Box>
           )}
         </Box>
@@ -134,15 +134,15 @@ const PremiumKPICard = ({ label, value, icon: Icon, trend, trendUp, color, descr
           variant="h3"
           sx={{
             fontWeight: 800,
-            mb: 1.5,
-            fontSize: { xs: '1.8rem', sm: '2.2rem' },
+            mb: { xs: 0.75, md: 1.5 },
+            fontSize: { xs: '1.4rem', sm: '1.8rem', md: '2.2rem' },
           }}
         >
           {value}
         </Typography>
 
         {trend && (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
             <Box
               sx={{
                 display: 'flex',
@@ -184,7 +184,7 @@ const PremiumChartCard = ({ title, children, subtitle, action }) => (
   >
     <Card
       sx={{
-        p: 3,
+        p: { xs: 1.5, sm: 2.5, md: 3 },
         borderRadius: '16px',
         boxShadow: '0 10px 35px rgba(0, 0, 0, 0.05)',
         border: '1px solid rgba(0, 0, 0, 0.06)',
@@ -197,13 +197,13 @@ const PremiumChartCard = ({ title, children, subtitle, action }) => (
         },
       }}
     >
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: { xs: 1.5, md: 3 }, gap: 1 }}>
         <Box>
           <Typography
             variant="h6"
             sx={{
               fontWeight: 700,
-              fontSize: '1.1rem',
+              fontSize: { xs: '1rem', sm: '1.1rem' },
               color: '#111827',
               mb: 0.5,
             }}
@@ -211,7 +211,7 @@ const PremiumChartCard = ({ title, children, subtitle, action }) => (
             {title}
           </Typography>
           {subtitle && (
-            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+            <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
               {subtitle}
             </Typography>
           )}
@@ -251,20 +251,20 @@ export default function AdminDashboard() {
   const totalExpense = mockExpenseBreakdown.reduce((sum, item) => sum + item.value, 0);
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pb: 4 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2, md: 3 }, pb: 4, px: { xs: 1, sm: 0 } }}>
       {/* Page Header */}
-      <Box>
-        <Typography variant="h3" sx={{ fontWeight: 700, mb: 1, color: '#111827' }}>
+      <Box sx={{ mb: { xs: 1, md: 2 } }}>
+        <Typography variant="h3" sx={{ fontWeight: 700, mb: 1, color: '#111827', fontSize: { xs: '1.75rem', sm: '2.125rem', md: '2.5rem' } }}>
           Admin Dashboard
         </Typography>
-        <Typography variant="body1" color="textSecondary">
+        <Typography variant="body1" color="textSecondary" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
           Welcome back! Monitor your school's performance and analytics.
         </Typography>
       </Box>
 
-      {/* Main KPI Cards Grid - 4 columns */}
-      <Grid container spacing={2.5}>
-        <Grid item xs={12} sm={6} md={3}>
+      {/* Main KPI Cards Grid - Responsive columns */}
+      <Grid container spacing={{ xs: 1.5, sm: 2, md: 2.5 }}>
+        <Grid item xs={12} sm={6} lg={3}>
           <PremiumKPICard
             label="Fee Awaiting"
             value={`₹${mockStudents.filter((s) => s.feeStatus === 'pending').length * 15000}`}
@@ -308,8 +308,8 @@ export default function AdminDashboard() {
       </Grid>
 
       {/* Second Row of KPI Cards - Additional Metrics */}
-      <Grid container spacing={2.5}>
-        <Grid item xs={12} sm={6} md={3}>
+      <Grid container spacing={{ xs: 1.5, sm: 2, md: 2.5 }}>
+        <Grid item xs={12} sm={6} lg={3}>
           <PremiumKPICard
             label="Teachers Present"
             value={`${mockTeachers.length}/${mockTeachers.length}`}
