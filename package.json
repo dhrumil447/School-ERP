@@ -9,28 +9,30 @@
     "preview": "vite preview --host 0.0.0.0"
   },
   "dependencies": {
-    "vite": "latest",
-    "react": "latest",
-    "react-dom": "latest",
-    "react-router-dom": "latest",
-    "react-hook-form": "latest",
-    "framer-motion": "latest",
-    "@mui/material": "latest",
-    "@mui/x-data-grid": "latest",
-    "@mui/icons-material": "latest",
     "@emotion/react": "latest",
     "@emotion/styled": "latest",
-    "lucide-react": "latest",
-    "recharts": "latest",
+    "@mui/icons-material": "latest",
+    "@mui/material": "latest",
+    "@mui/x-data-grid": "latest",
+    "apexcharts": "^5.14.0",
+    "class-variance-authority": "latest",
     "clsx": "latest",
+    "framer-motion": "latest",
+    "lucide-react": "latest",
+    "react": "latest",
+    "react-apexcharts": "^2.1.0",
+    "react-dom": "latest",
+    "react-hook-form": "latest",
+    "react-router-dom": "latest",
+    "recharts": "latest",
     "tailwind-merge": "latest",
-    "class-variance-authority": "latest"
+    "vite": "latest"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "latest",
-    "tailwindcss": "^3.4.17",
-    "postcss": "latest",
     "autoprefixer": "latest",
+    "postcss": "latest",
+    "tailwindcss": "^3.4.17",
     "terser": "latest"
   }
 }

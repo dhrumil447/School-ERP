@@ -1,175 +1,169 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import {
-  Box,
-  Button,
-  Card,
-  Container,
-  TextField,
-  Typography,
-  Alert,
-  CircularProgress,
-  useTheme,
-} from '@mui/material';
+import { useNavigate, Link } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
+import {
+  TextField, Button, Alert, InputAdornment, IconButton, CircularProgress, Card, Box, Typography
+} from '@mui/material';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 
 export default function TeacherLogin() {
-  const [email, setEmail] = useState('teacher@schoolerp.demo');
-  const [password, setPassword] = useState('Teacher@123');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const navigate = useNavigate();
   const { login } = useAuth();
-  const theme = useTheme();
+  const [showPass, setShowPass] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const { register, handleSubmit, setValue, formState: { errors } } = useForm();
+
+  const onSubmit = async (data) => {
     setLoading(true);
     setError('');
-
-    try {
-      if (login(email, password, 'teacher')) {
-        navigate('/teacher/dashboard');
-      } else {
-        setError('Invalid email or password');
-      }
-    } catch (err) {
-      setError('An error occurred. Please try again.');
-    } finally {
-      setLoading(false);
+    await new Promise(r => setTimeout(r, 800));
+    const result = login(data.email, data.password);
+    if (result.success) {
+      navigate('/teacher/dashboard');
+    } else {
+      setError('Invalid email or password. Please try again.');
     }
+    setLoading(false);
+  };
+
+  const fillDemo = () => {
+    setValue('email', 'teacher@schoolerp.demo');
+    setValue('password', 'Teacher@123');
   };
 
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: theme.palette.mode === 'dark'
-          ? 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)'
-          : 'linear-gradient(135deg, #F3F4F6 0%, #FAFAF9 100%)',
-      }}
-    >
-      <Container maxWidth="sm">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <Card
-            sx={{
-              p: { xs: 3, md: 4 },
-              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
-              borderRadius: 3,
-            }}
-          >
-            {/* Logo Section */}
-            <Box sx={{ textAlign: 'center', mb: 4 }}>
-              <Box
-                sx={{
-                  width: 60,
-                  height: 60,
-                  borderRadius: 2,
-                  background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  mx: 'auto',
-                  mb: 2,
-                  color: 'white',
-                  fontSize: '28px',
-                  fontWeight: 'bold',
-                }}
-              >
-                E
-              </Box>
-              <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
-                Teacher Portal
-              </Typography>
-              <Typography variant="body2" color="textSecondary">
-                School ERP Management System
+    <Box sx={{
+      minHeight: '100vh',
+      backgroundColor: '#f8fafc',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      px: 2,
+      py: 4
+    }}>
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        style={{ width: '100%', maxWidth: 440 }}
+      >
+        <Card sx={{ p: 4, borderRadius: 1.5, border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.02)' }}>
+          {/* Header branding */}
+          <Box sx={{ textAlign: 'center', mb: 3 }}>
+            <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+              <Box sx={{
+                width: 34, height: 34, borderRadius: 1,
+                bgcolor: '#c2410c', // Teacher Portal theme color (flat orange accent)
+                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18,
+              }}>👩‍🏫</Box>
+              <Typography sx={{ fontWeight: 800, fontSize: '1.2rem', letterSpacing: '-0.02em', color: 'text.primary' }}>
+                EduVerse Faculty
               </Typography>
             </Box>
+            <Typography variant="h5" sx={{ fontWeight: 750, mb: 0.5, letterSpacing: '-0.02em' }}>
+              Sign in to Faculty Portal
+            </Typography>
+            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+              Enter faculty credentials to manage student directories, grades, and schedule timetables.
+            </Typography>
+          </Box>
 
-            {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
+          <Button
+            onClick={fillDemo}
+            fullWidth
+            variant="outlined"
+            size="small"
+            sx={{
+              mb: 3,
+              borderColor: '#fed7aa',
+              color: '#c2410c',
+              fontWeight: 600,
+              fontSize: '0.8rem',
+              py: 0.8,
+              '&:hover': {
+                borderColor: '#c2410c',
+                backgroundColor: 'action.hover',
+              }
+            }}
+          >
+            ⚡ Pre-fill Demo Credentials
+          </Button>
 
-            {/* Demo Credentials Info */}
-            <Alert severity="info" sx={{ mb: 3 }}>
-              <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
-                Demo Credentials:
-              </Typography>
-              <Typography variant="caption">
-                Email: teacher@schoolerp.demo<br />
-                Password: Teacher@123
-              </Typography>
-            </Alert>
+          {error && <Alert severity="error" sx={{ mb: 2.5, borderRadius: 1, fontSize: '0.8rem' }}>{error}</Alert>}
 
-            {/* Form */}
-            <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
               <TextField
-                label="Email Address"
+                label="Faculty Email Address"
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
                 fullWidth
-                disabled={loading}
-                variant="outlined"
+                size="small"
+                {...register('email', { required: 'Email is required' })}
+                error={!!errors.email}
+                helperText={errors.email?.message}
+                placeholder="teacher@schoolerp.demo"
               />
               <TextField
                 label="Password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                type={showPass ? 'text' : 'password'}
                 fullWidth
-                disabled={loading}
-                variant="outlined"
+                size="small"
+                {...register('password', { required: 'Password is required' })}
+                error={!!errors.password}
+                helperText={errors.password?.message}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton onClick={() => setShowPass(p => !p)} edge="end" size="small">
+                        {showPass ? <VisibilityOff sx={{ fontSize: 18 }} /> : <Visibility sx={{ fontSize: 18 }} />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
               />
               <Button
                 type="submit"
-                fullWidth
                 variant="contained"
-                size="large"
+                fullWidth
                 disabled={loading}
+                size="large"
                 sx={{
-                  mt: 2,
-                  background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
+                  py: 1.2,
+                  fontSize: '0.875rem',
                   fontWeight: 600,
+                  bgcolor: '#c2410c',
+                  '&:hover': { bgcolor: '#9a3412' },
+                  mt: 0.5
                 }}
               >
-                {loading ? <CircularProgress size={24} color="inherit" /> : 'Login as Teacher'}
+                {loading ? <CircularProgress size={20} color="inherit" /> : 'Access Faculty Portal'}
               </Button>
             </Box>
+          </form>
 
-            {/* Divider */}
-            <Box sx={{ my: 3, textAlign: 'center' }}>
-              <Typography variant="body2" color="textSecondary">
-                Or login as
-              </Typography>
-            </Box>
+          {/* Quick info box */}
+          <Box sx={{ mt: 3, p: 2, bgcolor: 'action.hover', borderRadius: 1, border: '1px solid #e2e8f0' }}>
+            <Typography sx={{ fontSize: '0.72rem', color: 'text.secondary', fontWeight: 700, textTransform: 'uppercase', mb: 0.5, letterSpacing: '0.5px' }}>
+              Faculty Demo Credentials
+            </Typography>
+            <Typography sx={{ fontSize: '0.78rem', color: 'text.secondary', fontFamily: 'monospace' }}>
+              Email: teacher@schoolerp.demo<br />
+              Pass: Teacher@123
+            </Typography>
+          </Box>
 
-            {/* Other Portal Links */}
-            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
-              <Button
-                fullWidth
-                variant="outlined"
-                onClick={() => navigate('/admin/login')}
-              >
-                Admin Portal
-              </Button>
-              <Button
-                fullWidth
-                variant="outlined"
-                onClick={() => navigate('/student/login')}
-              >
-                Student Portal
-              </Button>
-            </Box>
-          </Card>
-        </motion.div>
-      </Container>
+          <Box sx={{ mt: 3, textAlign: 'center', fontSize: '0.8rem', color: 'text.secondary' }}>
+            Looking for other logins?{' '}
+            <Link to="/admin/login" style={{ color: '#4f46e5', textDecoration: 'none', fontWeight: 600 }}>Admin</Link>
+            {' · '}
+            <Link to="/student/login" style={{ color: '#4f46e5', textDecoration: 'none', fontWeight: 600 }}>Student</Link>
+          </Box>
+        </Card>
+      </motion.div>
     </Box>
   );
 }

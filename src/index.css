@@ -1,24 +1,27 @@
-* {
-  margin: 0;
-  padding: 0;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+*, *::before, *::after {
   box-sizing: border-box;
 }
 
-html, body, #root {
-  width: 100%;
-  height: 100%;
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  font-family: 'Inter', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background-color: #ffffff;
+  color: #0f172a;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Scrollbar Styles */
+/* Custom Clean Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -26,26 +29,79 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #C4B5FD;
+  background: #cbd5e1;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #A78BFA;
+  background: #94a3b8;
 }
 
-/* Smooth Transitions */
-* {
-  transition: background-color 0.3s ease, color 0.3s ease;
+/* Page transition styles */
+.page-enter {
+  opacity: 0;
 }
 
-/* Hide scrollbar for specific elements */
-.hide-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+.page-enter-active {
+  opacity: 1;
+  transition: opacity 150ms ease-in-out;
 }
 
-.hide-scrollbar::-webkit-scrollbar {
-  display: none;
+/* Basic Card Hover (Subtle border color highlight rather than huge pop shadow) */
+.card-hover {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
+.card-hover:hover {
+  border-color: #94a3b8;
+}
+
+/* Status colors and chips - Clean, corporate, low saturation */
+.chip-paid { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+.chip-pending { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+.chip-partial { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+.chip-active { background: #d1fae5; color: #065f46; }
+.chip-inactive { background: #f1f5f9; color: #475569; }
+
+/* Corporate solid background for login pages */
+.auth-bg {
+  background-color: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+/* Print styles */
+@media print {
+  .no-print { display: none !important; }
+  body { background: white !important; color: black !important; }
+}
+
+/* MUI DataGrid Clean Style Overrides */
+.MuiDataGrid-root {
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 8px !important;
+  background-color: #ffffff;
+}
+
+.MuiDataGrid-columnHeaders {
+  background-color: #f8fafc !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  font-weight: 600;
+}
+
+.MuiDataGrid-cell {
+  border-bottom: 1px solid #f1f5f9 !important;
+}
+
+.MuiDataGrid-footerContainer {
+  border-top: 1px solid #e2e8f0 !important;
+  background-color: #f8fafc;
+}
+
+/* Focus outline */
+*:focus-visible {
+  outline: 2px solid #4f46e5;
+  outline-offset: 2px;
+}

@@ -1,241 +1,220 @@
 import React from 'react';
 import {
-  Box,
-  Card,
-  Grid,
-  Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Chip,
-  LinearProgress,
-  Avatar,
-  Button,
+  Box, Typography, Card, CardContent, Grid, Chip, LinearProgress,
+  useTheme, Divider, Avatar
 } from '@mui/material';
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip as ChartTooltip,
-  ResponsiveContainer,
+  RadarChart, Radar, PolarGrid, PolarAngleAxis,
+  Tooltip as ChartTooltip, ResponsiveContainer,
 } from 'recharts';
 import { motion } from 'framer-motion';
-import { mockNotices, mockStudentResults, mockAttendanceData } from '../../data/mockData';
+import { useAuth } from '../../context/AuthContext';
+import { mockResults, mockNotices, mockTimetable, mockSubjectColors, mockDays, mockPeriods } from '../../data/mockData';
 
-const StatCard = ({ label, value, color }) => (
-  <motion.div whileHover={{ scale: 1.02 }}>
-    <Card sx={{ p: 3, backgroundColor: color ? color : 'default', color: color ? 'white' : 'inherit' }}>
-      <Typography variant="body2" sx={{ opacity: color ? 0.9 : 0.7, mb: 1 }}>
-        {label}
-      </Typography>
-      <Typography variant="h4" sx={{ fontWeight: 700 }}>
-        {value}
-      </Typography>
-    </Card>
-  </motion.div>
-);
+const fadeUp = (delay = 0) => ({
+  initial: { opacity: 0, y: 8 },
+  animate: { opacity: 1, y: 0 },
+  transition: { delay, duration: 0.3 }
+});
 
 export default function StudentDashboard() {
-  // Mock student data
-  const studentData = {
-    name: 'Aarav Kumar',
-    class: '10-A',
-    rollNo: '001',
-    email: 'aarav.kumar@school.com',
-    phone: '9876543210',
-    guardian: 'Rajesh Kumar',
-    attendance: 94,
-    feeStatus: 'paid',
+  const theme = useTheme();
+  const { user } = useAuth();
+  
+  const chartTooltipStyle = {
+    backgroundColor: theme.palette.mode === 'dark' ? '#1e293b' : '#ffffff',
+    border: `1px solid ${theme.palette.divider}`,
+    borderRadius: '4px',
+    fontSize: '11px',
+    color: theme.palette.text.primary,
+    boxShadow: 'none'
   };
 
+  // Simulate student results for current user
+  const myResults = mockResults.filter(r => r.status === 'Published').slice(0, 3);
+  const myLatestResult = myResults[0];
+
+  const subjectScores = myLatestResult ? Object.entries(myLatestResult.subjects).map(([subject, score]) => ({ subject, score })) : [];
+  const myAttendance = 89;
+  const myFeeStatus = 'paid';
+  const announcements = mockNotices.filter(n => n.targetAudience === 'All' || n.targetAudience === 'Students').slice(0, 3);
+  const today = mockDays[new Date().getDay() % 5] || 'Monday';
+  const todaySchedule = (mockTimetable['10A']?.[today] || []).map((s, i) => ({ period: `P${i + 1}`, time: mockPeriods[i], subject: s }));
+
+  const gradeColor = { 'A+': '#22c55e', 'A': '#06b6d4', 'B+': '#4f46e5', 'B': '#8b5cf6', 'C': '#f59e0b', 'F': '#ef4444' };
+
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      {/* Header */}
-      <Box>
-        <Typography variant="h3" sx={{ fontWeight: 700, mb: 1 }}>
-          Welcome, {studentData.name}!
-        </Typography>
-        <Typography variant="body1" color="textSecondary">
-          Here's your personalized dashboard with all important information.
-        </Typography>
-      </Box>
+    <Box sx={{ p: { xs: 2, md: 3 }, backgroundColor: 'background.default' }}>
+      
+      {/* Welcome Banner (Clean light green surface instead of flashy gradient) */}
+      <motion.div {...fadeUp(0)}>
+        <Box sx={{
+          mb: 3, p: 3, borderRadius: 1,
+          bgcolor: theme.palette.mode === 'dark' ? 'action.selected' : '#e6f4ea',
+          border: '1px solid',
+          borderColor: theme.palette.mode === 'dark' ? 'divider' : '#a7f3d0',
+          color: 'text.primary',
+        }}>
+          <Typography sx={{ fontSize: '1.4rem', fontWeight: 800, mb: 0.5, letterSpacing: '-0.02em', color: '#065f46' }}>
+            Welcome Back, {user?.name} 🎓
+          </Typography>
+          <Typography sx={{ color: 'text.secondary', fontSize: '0.825rem' }}>
+            EduVerse Student Portal · Class 10A · Academic Term 2025-26
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 1.5, mt: 1.5 }}>
+            <Chip label="Class: 10-A" size="small" sx={{ bgcolor: 'background.paper', borderColor: 'divider', border: '1px solid', fontWeight: 600, fontSize: '0.7rem' }} />
+            <Chip label="Roll ID: 10A001" size="small" sx={{ bgcolor: 'background.paper', borderColor: 'divider', border: '1px solid', fontWeight: 600, fontSize: '0.7rem' }} />
+          </Box>
+        </Box>
+      </motion.div>
 
-      {/* Profile Card */}
-      <Card sx={{ p: 3 }}>
-        <Grid container spacing={3} alignItems="center">
-          <Grid item xs={12} sm="auto">
-            <Avatar
-              sx={{
-                width: 80,
-                height: 80,
-                background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
-                fontSize: '2rem',
-              }}
-            >
-              {studentData.name.charAt(0)}
-            </Avatar>
+      {/* KPI Cards (Clean cards with subtle gray borders and simple text) */}
+      <Grid container spacing={2} sx={{ mb: 3 }}>
+        {[
+          { label: 'My Attendance', value: `${myAttendance}%`, color: myAttendance >= 85 ? 'success.main' : 'warning.main', icon: '📋', sub: myAttendance >= 75 ? 'Meets threshold requirement' : 'Below required attendance' },
+          { label: 'Latest Score Grade', value: myLatestResult?.grade || 'N/A', color: 'primary.main', icon: '📊', sub: `Avg: ${myLatestResult?.percentage}% · Class Rank: #${myLatestResult?.rank}` },
+          { label: 'Annual Fee Status', value: myFeeStatus === 'paid' ? 'Completed' : 'Payment Due', color: myFeeStatus === 'paid' ? 'success.main' : 'error.main', icon: '💰', sub: 'Term fees paid in full' },
+          { label: "Today's Schedule Lectures", value: todaySchedule.length.toString(), color: 'primary.main', icon: '🗓️', sub: `${today}` },
+        ].map((s, i) => (
+          <Grid item xs={12} sm={6} md={3} key={i}>
+            <motion.div {...fadeUp(i * 0.04)} style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <Card sx={{ height: '100%', borderColor: 'divider' }}>
+                <CardContent sx={{ p: 2.5 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography sx={{ fontSize: '0.72rem', color: 'text.secondary', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      {s.label}
+                    </Typography>
+                    <Typography sx={{ fontSize: '1.25rem', lineHeight: 1 }}>{s.icon}</Typography>
+                  </Box>
+                  <Typography sx={{ fontSize: '1.5rem', fontWeight: 850, color: s.color, lineHeight: 1.1, mb: 0.5 }}>
+                    {s.value}
+                  </Typography>
+                  <Typography sx={{ fontSize: '0.72rem', color: 'text.secondary' }}>
+                    {s.sub}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </motion.div>
           </Grid>
-          <Grid item xs={12} sm>
-            <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
-              {studentData.name}
-            </Typography>
-            <Grid container spacing={3}>
-              <Grid item xs={6} sm="auto">
-                <Typography variant="caption" color="textSecondary" display="block">
-                  Class
-                </Typography>
-                <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                  {studentData.class}
-                </Typography>
-              </Grid>
-              <Grid item xs={6} sm="auto">
-                <Typography variant="caption" color="textSecondary" display="block">
-                  Roll No.
-                </Typography>
-                <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                  {studentData.rollNo}
-                </Typography>
-              </Grid>
-              <Grid item xs={6} sm="auto">
-                <Typography variant="caption" color="textSecondary" display="block">
-                  Email
-                </Typography>
-                <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                  {studentData.email}
-                </Typography>
-              </Grid>
-              <Grid item xs={6} sm="auto">
-                <Typography variant="caption" color="textSecondary" display="block">
-                  Phone
-                </Typography>
-                <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                  {studentData.phone}
-                </Typography>
-              </Grid>
-            </Grid>
-          </Grid>
-        </Grid>
-      </Card>
-
-      {/* Key Metrics */}
-      <Grid container spacing={2}>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard label="Attendance" value={`${studentData.attendance}%`} color="linear-gradient(135deg, #10B981 0%, #059669 100%)" />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard label="Fee Status" value={studentData.feeStatus === 'paid' ? 'Paid' : 'Pending'} color={studentData.feeStatus === 'paid' ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)' : 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)'} />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard label="Class Avg" value="87%" color="linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)" />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard label="Rank" value="#15" color="linear-gradient(135deg, #06B6D4 0%, #0891B2 100%)" />
-        </Grid>
+        ))}
       </Grid>
 
-      {/* Content Grid */}
-      <Grid container spacing={3}>
-        {/* Attendance Progress */}
+      <Grid container spacing={2.5}>
+        {/* Today's Timetable */}
+        <Grid item xs={12} md={5}>
+          <motion.div {...fadeUp(0.2)} style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <Card sx={{ height: '100%', borderColor: 'divider' }}>
+              <CardContent sx={{ p: 2.5 }}>
+                <Typography sx={{ fontWeight: 700, mb: 2, fontSize: '0.85rem', color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  📅 Classes scheduled today — {today}
+                </Typography>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  {todaySchedule.slice(0, 6).map((p, i) => {
+                    const color = mockSubjectColors[p.subject] || '#4f46e5';
+                    return (
+                      <Box key={i} sx={{ display: 'flex', gap: 1.5, alignItems: 'center', p: 1.2, borderRadius: 1, border: '1px solid #e2e8f0', bgcolor: 'action.hover' }}>
+                        <Box sx={{ width: 28, height: 28, borderRadius: 0.5, bgcolor: '#ffffff', border: '1px solid #cbd5e1', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          <Typography sx={{ fontSize: '0.7rem', fontWeight: 800, color: 'text.secondary' }}>{p.period}</Typography>
+                        </Box>
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                          <Typography sx={{ fontSize: '0.825rem', fontWeight: 700, color: 'text.primary', lineHeight: 1.2 }}>{p.subject}</Typography>
+                          <Typography sx={{ fontSize: '0.68rem', color: 'text.secondary' }}>{p.time}</Typography>
+                        </Box>
+                      </Box>
+                    );
+                  })}
+                </Box>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </Grid>
+
+        {/* Performance Radar */}
+        <Grid item xs={12} md={7}>
+          <motion.div {...fadeUp(0.24)} style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <Card sx={{ height: '100%', borderColor: 'divider' }}>
+              <CardContent sx={{ p: 2.5 }}>
+                <Typography sx={{ fontWeight: 700, mb: 0.3, fontSize: '0.85rem', color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  📊 Subject mark analysis
+                </Typography>
+                <Typography sx={{ fontSize: '0.72rem', color: 'text.secondary', mb: 2 }}>Latest semester test performance</Typography>
+                {subjectScores.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={250}>
+                    <RadarChart data={subjectScores} margin={{ top: 5, right: 30, bottom: 5, left: 30 }}>
+                      <PolarGrid stroke={theme.palette.divider} />
+                      <PolarAngleAxis dataKey="subject" tick={{ fill: theme.palette.text.secondary, fontSize: 11 }} />
+                      <Radar name="Score" dataKey="score" stroke="#4f46e5" fill="#4f46e5" fillOpacity={0.1} strokeWidth={2} />
+                      <ChartTooltip contentStyle={chartTooltipStyle} formatter={v => `${v}/100`} />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <Box sx={{ textAlign: 'center', py: 4, color: 'text.secondary', fontSize: '0.8rem' }}>No results published yet</Box>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+        </Grid>
+
+        {/* Attendance Bar */}
         <Grid item xs={12} md={6}>
-          <Card sx={{ p: 3 }}>
-            <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
-              Attendance Overview
-            </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                  <Typography variant="body2">Class Attendance</Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                    {studentData.attendance}%
+          <motion.div {...fadeUp(0.28)} style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <Card sx={{ borderColor: 'divider' }}>
+              <CardContent sx={{ p: 2.5 }}>
+                <Typography sx={{ fontWeight: 700, mb: 2, fontSize: '0.85rem', color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  📋 Lecture Attendance Progress
+                </Typography>
+                <Box sx={{ mb: 2 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1, alignItems: 'center' }}>
+                    <Typography sx={{ fontSize: '0.825rem' }}>Total attendance rate</Typography>
+                    <Typography sx={{ fontWeight: 800, color: myAttendance >= 85 ? 'success.main' : 'warning.main', fontSize: '1.1rem' }}>{myAttendance}%</Typography>
+                  </Box>
+                  <LinearProgress variant="determinate" value={myAttendance} sx={{ height: 6, borderRadius: 3, '& .MuiLinearProgress-bar': { bgcolor: myAttendance >= 85 ? '#10b981' : '#f59e0b', borderRadius: 3 } }} />
+                  <Typography sx={{ fontSize: '0.72rem', color: myAttendance >= 75 ? 'success.main' : 'error.main', mt: 0.8 }}>
+                    {myAttendance >= 75 ? '✅ Attendance rate satisfies the institute minimum criteria of 75%' : '⚠️ Below minimum requirement.'}
                   </Typography>
                 </Box>
-                <LinearProgress
-                  variant="determinate"
-                  value={studentData.attendance}
-                  sx={{ height: 8, borderRadius: 4 }}
-                />
-              </Box>
-              <Box sx={{ p: 2, backgroundColor: 'rgba(79, 70, 229, 0.05)', borderRadius: 2 }}>
-                <Typography variant="caption" color="textSecondary">
-                  📌 Note: Maintain at least 75% attendance to be eligible for exams.
-                </Typography>
-              </Box>
-            </Box>
-          </Card>
+                <Grid container spacing={1.5}>
+                  {[{ label: 'Lectures Present', value: Math.round(myAttendance * 1.8), color: '#10b981' }, { label: 'Lectures Absent', value: Math.round((100 - myAttendance) * 1.8), color: '#ef4444' }, { label: 'Total Term Lectures', value: 180, color: '#4f46e5' }].map((s, i) => (
+                    <Grid item xs={4} key={i}>
+                      <Box sx={{ p: 1.2, borderRadius: 1, bgcolor: 'action.hover', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+                        <Typography sx={{ fontWeight: 800, fontSize: '1rem', color: s.color }}>{s.value}</Typography>
+                        <Typography sx={{ fontSize: '0.65rem', color: 'text.secondary' }}>{s.label}</Typography>
+                      </Box>
+                    </Grid>
+                  ))}
+                </Grid>
+              </CardContent>
+            </Card>
+          </motion.div>
         </Grid>
 
-        {/* Recent Results */}
+        {/* Notices */}
         <Grid item xs={12} md={6}>
-          <Card sx={{ p: 3 }}>
-            <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
-              Academic Results
-            </Typography>
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow sx={{ backgroundColor: 'rgba(79, 70, 229, 0.05)' }}>
-                    <TableCell sx={{ fontWeight: 700 }}>Subject</TableCell>
-                    <TableCell align="right" sx={{ fontWeight: 700 }}>Marks</TableCell>
-                    <TableCell align="right" sx={{ fontWeight: 700 }}>%</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {mockStudentResults.map((result) => (
-                    <TableRow key={result.subject} hover>
-                      <TableCell>{result.subject}</TableCell>
-                      <TableCell align="right">
-                        {result.marks}/{result.totalMarks}
-                      </TableCell>
-                      <TableCell align="right">
-                        <Chip
-                          label={`${result.percentage}%`}
-                          color={result.percentage >= 80 ? 'success' : result.percentage >= 60 ? 'warning' : 'error'}
-                          size="small"
-                        />
-                      </TableCell>
-                    </TableRow>
+          <motion.div {...fadeUp(0.32)} style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <Card sx={{ borderColor: 'divider' }}>
+              <CardContent sx={{ p: 2.5 }}>
+                <Typography sx={{ fontWeight: 700, mb: 2, fontSize: '0.85rem', color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  📢 Latest Academic Board Notices
+                </Typography>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.2 }}>
+                  {announcements.map(n => (
+                    <Box key={n.id} sx={{
+                      p: 1.5, borderRadius: 1, border: '1px solid #e2e8f0', borderLeft: `3px solid ${n.important ? '#ef4444' : '#4f46e5'}`,
+                      bgcolor: 'background.paper',
+                    }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 1, mb: 0.5 }}>
+                        <Typography sx={{ fontSize: '0.825rem', fontWeight: 700 }}>{n.title}</Typography>
+                        {n.important && <Chip label="Urgent" size="small" color="error" sx={{ fontSize: '0.6rem', height: 16, borderRadius: '4px' }} />}
+                      </Box>
+                      <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary' }}>Date: {n.date} · Author: {n.author}</Typography>
+                    </Box>
                   ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Card>
+                </Box>
+              </CardContent>
+            </Card>
+          </motion.div>
         </Grid>
       </Grid>
-
-      {/* Notices */}
-      <Card sx={{ p: 3 }}>
-        <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
-          Recent Notices
-        </Typography>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {mockNotices.slice(0, 3).map((notice) => (
-            <Box
-              key={notice.id}
-              sx={{
-                p: 2,
-                borderRadius: 2,
-                backgroundColor: notice.important ? 'rgba(239, 68, 68, 0.05)' : 'rgba(79, 70, 229, 0.05)',
-                borderLeft: notice.important ? '4px solid #EF4444' : '4px solid #4F46E5',
-              }}
-            >
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-                <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                  {notice.title}
-                </Typography>
-                {notice.important && <Chip label="Important" size="small" color="error" />}
-              </Box>
-              <Typography variant="caption" color="textSecondary">
-                {notice.date}
-              </Typography>
-            </Box>
-          ))}
-        </Box>
-      </Card>
     </Box>
   );
 }

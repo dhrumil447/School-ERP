@@ -9,257 +9,214 @@ import {
   Card,
   Grid,
   Button,
-  useTheme,
-  useMediaQuery,
 } from '@mui/material';
 
 export default function Landing() {
   const navigate = useNavigate();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const roles = [
     {
       id: 'admin',
-      title: 'Admin',
-      description: 'Manage school operations, students, teachers, and attendance',
+      title: 'Administrator',
+      description: 'Manage institutional settings, user directories, fee modules, and system reports.',
       icon: ShieldCheck,
       path: '/admin/login',
-      color: '#ef4444',
-      bgColor: '#fee2e2',
+      color: '#4f46e5', // Primary Indigo
+      bgColor: '#f0fdf4',
     },
     {
       id: 'teacher',
-      title: 'Teacher',
-      description: 'View and manage classes, attendance, and student progress',
+      title: 'Faculty Portal',
+      description: 'Record daily attendance, upload academic marks, view timetables, and manage students.',
       icon: BookOpen,
       path: '/teacher/login',
-      color: '#3b82f6',
-      bgColor: '#dbeafe',
+      color: '#4f46e5',
+      bgColor: '#eff6ff',
     },
     {
       id: 'student',
-      title: 'Student',
-      description: 'Check attendance, results, notices, and class schedule',
+      title: 'Student Portal',
+      description: 'Access academic performance cards, track attendance progress, and view class schedule sheets.',
       icon: Users,
       path: '/student/login',
-      color: '#10b981',
-      bgColor: '#d1fae5',
+      color: '#4f46e5',
+      bgColor: '#ecfdf5',
     },
   ];
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.2,
-        delayChildren: 0.3,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.5, ease: 'easeOut' },
-    },
-  };
-
-  const hoverVariants = {
-    hover: { scale: 1.05, y: -10 },
-  };
 
   return (
     <Box
       sx={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        backgroundColor: '#f8fafc', // Light gray background
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '2rem 1rem',
+        py: 6,
+        px: 2,
       }}
     >
       <Container maxWidth="lg">
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={containerVariants}
-        >
-          {/* Header */}
-          <Box sx={{ textAlign: 'center', mb: 6 }}>
-            <motion.div variants={itemVariants}>
-              <Typography
-                variant="h3"
-                component="h1"
-                sx={{
-                  fontWeight: 'bold',
-                  color: 'white',
-                  mb: 2,
-                  fontSize: { xs: '2rem', md: '3.5rem' },
-                }}
-              >
-                School ERP System
-              </Typography>
-            </motion.div>
-
-            <motion.div variants={itemVariants}>
-              <Typography
-                variant="h6"
-                sx={{
-                  color: 'rgba(255,255,255,0.9)',
-                  fontWeight: '300',
-                  mb: 1,
-                }}
-              >
-                Select your role to login
-              </Typography>
-            </motion.div>
-
-            <motion.div variants={itemVariants}>
-              <Typography
-                sx={{
-                  color: 'rgba(255,255,255,0.8)',
-                  fontSize: '0.95rem',
-                }}
-              >
-                Please select the role that matches your account
-              </Typography>
-            </motion.div>
+        {/* Header Branding */}
+        <Box sx={{ textAlign: 'center', mb: 6 }}>
+          <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+            <Box sx={{
+              width: 40, height: 40, borderRadius: 1.5,
+              bgcolor: 'primary.main',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20,
+            }}>🏫</Box>
+            <Typography sx={{ fontWeight: 800, fontSize: '1.4rem', letterSpacing: '-0.02em', color: 'text.primary' }}>
+              EduVerse ERP
+            </Typography>
           </Box>
-
-          {/* Role Cards Grid */}
-          <Grid
-            container
-            spacing={4}
+          <Typography
+            variant="h4"
             sx={{
-              display: 'flex',
-              justifyContent: 'center',
-              flexWrap: 'wrap',
+              fontWeight: 700,
+              color: 'text.primary',
+              mb: 1.5,
+              fontSize: { xs: '1.75rem', md: '2.25rem' },
+              letterSpacing: '-0.02em',
             }}
           >
-            {roles.map((role, index) => {
-              const IconComponent = role.icon;
-              return (
-                <Grid item xs={12} sm={6} md={4} key={role.id}>
-                  <motion.div
-                    variants={itemVariants}
-                    whileHover="hover"
-                    variants={hoverVariants}
+            School ERP & Administration
+          </Typography>
+          <Typography
+            variant="body1"
+            sx={{
+              color: 'text.secondary',
+              maxWidth: 500,
+              mx: 'auto',
+            }}
+          >
+            Please choose your role from below to access your account dashboard.
+          </Typography>
+        </Box>
+
+        {/* Role Cards Grid */}
+        <Grid
+          container
+          spacing={3}
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+          }}
+        >
+          {roles.map((role) => {
+            const IconComponent = role.icon;
+            return (
+              <Grid item xs={12} sm={6} md={4} key={role.id}>
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <Card
+                    onClick={() => navigate(role.path)}
+                    sx={{
+                      cursor: 'pointer',
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      p: 4,
+                      borderRadius: 1.5,
+                      border: '1px solid #e2e8f0',
+                      backgroundColor: '#ffffff',
+                      boxShadow: 'none',
+                      transition: 'border-color 0.2s, box-shadow 0.2s',
+                      '&:hover': {
+                        borderColor: 'primary.main',
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.03)',
+                      },
+                    }}
                   >
-                    <Card
-                      onClick={() => navigate(role.path)}
+                    {/* Icon Container */}
+                    <Box
                       sx={{
-                        cursor: 'pointer',
-                        height: '100%',
+                        width: '54px',
+                        height: '54px',
+                        borderRadius: 1.25,
+                        backgroundColor: 'action.hover',
+                        border: '1px solid #e2e8f0',
                         display: 'flex',
-                        flexDirection: 'column',
                         alignItems: 'center',
-                        padding: '3rem 2rem',
-                        borderRadius: '16px',
-                        transition: 'all 0.3s ease',
-                        boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
-                        backgroundColor: 'white',
+                        justifyContent: 'center',
+                        mb: 3,
+                      }}
+                    >
+                      <IconComponent
+                        size={28}
+                        color="#4f46e5"
+                        strokeWidth={1.8}
+                      />
+                    </Box>
+
+                    {/* Title */}
+                    <Typography
+                      variant="h6"
+                      component="h2"
+                      sx={{
+                        fontWeight: 700,
+                        mb: 1,
+                        color: 'text.primary',
+                      }}
+                    >
+                      {role.title}
+                    </Typography>
+
+                    {/* Description */}
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: 'text.secondary',
+                        mb: 3,
+                        lineHeight: 1.6,
+                        flexGrow: 1,
+                      }}
+                    >
+                      {role.description}
+                    </Typography>
+
+                    {/* Button */}
+                    <Button
+                      variant="outlined"
+                      fullWidth
+                      sx={{
+                        color: 'primary.main',
+                        borderColor: '#cbd5e1',
+                        py: 1,
+                        fontWeight: 600,
                         '&:hover': {
-                          boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
-                          transform: 'translateY(-10px)',
+                          borderColor: 'primary.main',
+                          backgroundColor: 'action.hover',
                         },
                       }}
                     >
-                      {/* Icon Container */}
-                      <Box
-                        sx={{
-                          width: '80px',
-                          height: '80px',
-                          borderRadius: '50%',
-                          backgroundColor: role.bgColor,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          marginBottom: '1.5rem',
-                        }}
-                      >
-                        <IconComponent
-                          size={48}
-                          color={role.color}
-                          strokeWidth={1.5}
-                        />
-                      </Box>
+                      Sign In as {role.id === 'admin' ? 'Admin' : role.id === 'teacher' ? 'Teacher' : 'Student'}
+                    </Button>
+                  </Card>
+                </motion.div>
+              </Grid>
+            );
+          })}
+        </Grid>
 
-                      {/* Title */}
-                      <Typography
-                        variant="h5"
-                        component="h2"
-                        sx={{
-                          fontWeight: 'bold',
-                          marginBottom: '0.5rem',
-                          textAlign: 'center',
-                          color: '#1f2937',
-                        }}
-                      >
-                        {role.title}
-                      </Typography>
-
-                      {/* Description */}
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          color: '#6b7280',
-                          textAlign: 'center',
-                          marginBottom: '1.5rem',
-                          fontSize: '0.9rem',
-                          lineHeight: 1.6,
-                        }}
-                      >
-                        {role.description}
-                      </Typography>
-
-                      {/* Button */}
-                      <Button
-                        variant="contained"
-                        fullWidth
-                        sx={{
-                          backgroundColor: role.color,
-                          color: 'white',
-                          fontWeight: '600',
-                          padding: '0.75rem 1.5rem',
-                          marginTop: 'auto',
-                          '&:hover': {
-                            backgroundColor: role.color,
-                            opacity: 0.9,
-                          },
-                        }}
-                      >
-                        Login as {role.title}
-                      </Button>
-                    </Card>
-                  </motion.div>
-                </Grid>
-              );
-            })}
-          </Grid>
-
-          {/* Footer */}
-          <motion.div
-            variants={itemVariants}
-            style={{
-              textAlign: 'center',
-              marginTop: '4rem',
+        {/* Footer */}
+        <Box
+          sx={{
+            textAlign: 'center',
+            mt: 8,
+          }}
+        >
+          <Typography
+            variant="body2"
+            sx={{
+              color: 'text.disabled',
             }}
           >
-            <Typography
-              sx={{
-                color: 'rgba(255,255,255,0.7)',
-                fontSize: '0.875rem',
-              }}
-            >
-              © 2024 School ERP System. All rights reserved.
-            </Typography>
-          </motion.div>
-        </motion.div>
+            © {new Date().getFullYear()} EduVerse ERP. All rights reserved.
+          </Typography>
+        </Box>
       </Container>
     </Box>
   );

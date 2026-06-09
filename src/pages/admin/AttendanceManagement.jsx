@@ -1,231 +1,290 @@
 import React, { useState } from 'react';
 import {
-  Box,
-  Button,
-  Card,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  TextField,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Switch,
-  Chip,
-  Grid,
-  Typography,
+  Box, Typography, Card, CardContent, Grid, Button, Chip, Avatar,
+  FormControl, InputLabel, Select, MenuItem, IconButton, Tooltip,
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
+  Alert, Snackbar, LinearProgress, Tabs, Tab, TextField,
 } from '@mui/material';
 import {
-  LineChart,
-  Line,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip as ChartTooltip,
-  Legend,
-  ResponsiveContainer,
+  BarChart, Bar, LineChart, Line, AreaChart, Area,
+  XAxis, YAxis, CartesianGrid, Tooltip as ChartTooltip, ResponsiveContainer, Legend,
 } from 'recharts';
-import { Save as SaveIcon, Undo as UndoIcon } from '@mui/icons-material';
-import { mockStudents, mockAttendanceData } from '../../data/mockData';
+import { CheckCircle, Cancel, AccessTime, FileDownload, Save } from '@mui/icons-material';
+import { motion } from 'framer-motion';
+import { mockStudents, mockClassAttendance, mockMonthlyAttendance, mockWeeklyAttendance } from '../../data/mockData';
+import { useTheme } from '@mui/material/styles';
 
 export default function AttendanceManagement() {
-  const [selectedClass, setSelectedClass] = useState('10-A');
+  const theme = useTheme();
+  const [tab, setTab] = useState(0);
+  const [selectedClass, setSelectedClass] = useState('10A');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-  const [attendance, setAttendance] = useState(
-    mockStudents.filter((s) => s.class === selectedClass).map((s) => ({
-      studentId: s.id,
-      name: s.name,
-      status: Math.random() > 0.15 ? 'present' : 'absent',
-    }))
-  );
+  const [toast, setToast] = useState({ open: false, msg: '' });
 
-  const classes = ['10-A', '10-B', '10-C', '9-A', '9-B', '9-C'];
-  const classStudents = mockStudents.filter((s) => s.class === selectedClass);
+  const classStudents = mockStudents.filter(s => `${s.class}${s.section}` === selectedClass);
+  const [attendance, setAttendance] = useState(() => {
+    const init = {};
+    mockStudents.forEach(s => { init[s.id] = 'present'; });
+    return init;
+  });
 
-  const handleClassChange = (newClass) => {
-    setSelectedClass(newClass);
-    setAttendance(
-      mockStudents
-        .filter((s) => s.class === newClass)
-        .map((s) => ({
-          studentId: s.id,
-          name: s.name,
-          status: 'present',
-        }))
-    );
+  const setStatus = (id, status) => setAttendance(a => ({ ...a, [id]: status }));
+  const markAll = (status) => setAttendance(a => { const n = { ...a }; classStudents.forEach(s => { n[s.id] = status; }); return n; });
+
+  const presentCount = classStudents.filter(s => attendance[s.id] === 'present').length;
+  const absentCount = classStudents.filter(s => attendance[s.id] === 'absent').length;
+  const lateCount = classStudents.filter(s => attendance[s.id] === 'late').length;
+
+  const handleSave = () => setToast({ open: true, msg: `Attendance saved for ${selectedClass} on ${selectedDate}` });
+
+  const exportCSV = () => {
+    const rows = [['Name', 'Roll No', 'Status']];
+    classStudents.forEach(s => rows.push([s.name, s.rollNo, attendance[s.id]]));
+    const csv = rows.map(r => r.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = `attendance_${selectedClass}_${selectedDate}.csv`; a.click();
   };
 
-  const handleAttendanceToggle = (studentId) => {
-    setAttendance(
-      attendance.map((record) =>
-        record.studentId === studentId
-          ? { ...record, status: record.status === 'present' ? 'absent' : 'present' }
-          : record
-      )
-    );
-  };
-
-  const presentCount = attendance.filter((a) => a.status === 'present').length;
-  const absentCount = attendance.filter((a) => a.status === 'absent').length;
-  const attendancePercentage = ((presentCount / attendance.length) * 100).toFixed(2);
+  const TTStyle = { backgroundColor: theme.palette.mode === 'dark' ? '#1e293b' : '#0f172a', border: 'none', borderRadius: 8, color: '#f1f5f9', fontSize: 12 };
+  const classes = ['5A','5B','6A','6B','7A','7B','8A','8B','9A','9B','10A','10B'];
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      {/* Header */}
-      <Box>
-        <Typography variant="h3" sx={{ fontWeight: 700, mb: 1 }}>
-          Attendance Management
-        </Typography>
-        <Typography variant="body1" color="textSecondary">
-          Mark and track student attendance for the selected class and date.
-        </Typography>
+    <Box sx={{ p: { xs: 2, md: 3 } }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3, flexWrap: 'wrap', gap: 2 }}>
+        <Box>
+          <Typography variant="h5" sx={{ fontWeight: 800, mb: 0.5 }}>Attendance Management</Typography>
+          <Typography sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>Mark and track student attendance</Typography>
+        </Box>
+        <Box sx={{ display: 'flex', gap: 1.5 }}>
+          <Button variant="outlined" startIcon={<FileDownload />} onClick={exportCSV} size="small">Export</Button>
+          <Button variant="contained" startIcon={<Save />} onClick={handleSave} size="small"
+            sx={{ background: 'linear-gradient(135deg, #4F46E5, #7C3AED)' }}>Save Attendance</Button>
+        </Box>
       </Box>
 
-      {/* Selection Cards */}
-      <Grid container spacing={2}>
-        <Grid item xs={12} sm={6} md={3}>
-          <FormControl fullWidth>
-            <InputLabel>Select Class</InputLabel>
-            <Select
-              value={selectedClass}
-              label="Select Class"
-              onChange={(e) => handleClassChange(e.target.value)}
-            >
-              {classes.map((cls) => (
-                <MenuItem key={cls} value={cls}>
-                  {cls}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <TextField
-            fullWidth
-            label="Select Date"
-            type="date"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-            InputLabelProps={{ shrink: true }}
-          />
-        </Grid>
-      </Grid>
+      <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 3 }}>
+        <Tab label="Mark Attendance" />
+        <Tab label="Analytics" />
+        <Tab label="Monthly Report" />
+      </Tabs>
 
-      {/* Summary Cards */}
-      <Grid container spacing={2}>
-        <Grid item xs={6} sm={3}>
-          <Card sx={{ p: 2, textAlign: 'center', background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', color: 'white' }}>
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>
-              {presentCount}
-            </Typography>
-            <Typography variant="caption">Present</Typography>
+      {tab === 0 && (
+        <>
+          {/* Controls */}
+          <Card sx={{ mb: 2.5, borderRadius: 3 }}>
+            <CardContent sx={{ p: 2 }}>
+              <Grid container spacing={2} alignItems="center">
+                <Grid item xs={12} sm={4} md={3}>
+                  <FormControl fullWidth size="small">
+                    <InputLabel>Class</InputLabel>
+                    <Select value={selectedClass} onChange={e => setSelectedClass(e.target.value)} label="Class">
+                      {classes.map(c => <MenuItem key={c} value={c}>Class {c}</MenuItem>)}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} sm={4} md={3}>
+                  <TextField fullWidth type="date" label="Date" size="small" value={selectedDate}
+                    onChange={e => setSelectedDate(e.target.value)} InputLabelProps={{ shrink: true }} />
+                </Grid>
+                <Grid item xs={12} sm={4} md={6}>
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Button size="small" variant="outlined" color="success" onClick={() => markAll('present')}>All Present</Button>
+                    <Button size="small" variant="outlined" color="error" onClick={() => markAll('absent')}>All Absent</Button>
+                  </Box>
+                </Grid>
+              </Grid>
+            </CardContent>
           </Card>
-        </Grid>
-        <Grid item xs={6} sm={3}>
-          <Card sx={{ p: 2, textAlign: 'center', background: 'linear-gradient(135deg, #EF4444 0%, #DC2626 100%)', color: 'white' }}>
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>
-              {absentCount}
-            </Typography>
-            <Typography variant="caption">Absent</Typography>
+
+          {/* Stats */}
+          <Grid container spacing={2} sx={{ mb: 2.5 }}>
+            {[
+              { label: 'Total Students', value: classStudents.length, color: '#4f46e5' },
+              { label: 'Present', value: presentCount, color: '#22c55e' },
+              { label: 'Absent', value: absentCount, color: '#ef4444' },
+              { label: 'Late', value: lateCount, color: '#f59e0b' },
+            ].map((s, i) => (
+              <Grid item xs={6} md={3} key={i}>
+                <Card sx={{ borderRadius: 2.5, border: `1px solid ${s.color}25` }}>
+                  <CardContent sx={{ p: 2 }}>
+                    <Typography sx={{ fontSize: '0.72rem', color: 'text.secondary', fontWeight: 700, textTransform: 'uppercase' }}>{s.label}</Typography>
+                    <Typography sx={{ fontSize: '2rem', fontWeight: 800, color: s.color, lineHeight: 1.2, mt: 0.5 }}>{s.value}</Typography>
+                    <LinearProgress variant="determinate" value={(s.value / classStudents.length) * 100}
+                      sx={{ mt: 1, height: 4, borderRadius: 2, bgcolor: `${s.color}20`, '& .MuiLinearProgress-bar': { bgcolor: s.color } }} />
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+
+          {/* Attendance Table */}
+          <Card sx={{ borderRadius: 3 }}>
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow sx={{ bgcolor: 'background.default' }}>
+                    {['#', 'Student', 'Roll No', 'Status', 'Action'].map(h => (
+                      <TableCell key={h} sx={{ fontSize: '0.72rem', fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', py: 1.5 }}>{h}</TableCell>
+                    ))}
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {classStudents.map((s, i) => {
+                    const status = attendance[s.id];
+                    return (
+                      <TableRow key={s.id} sx={{ '&:hover': { bgcolor: 'action.hover' } }}>
+                        <TableCell sx={{ color: 'text.secondary', fontSize: '0.8rem' }}>{i + 1}</TableCell>
+                        <TableCell>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                            <Avatar sx={{ width: 32, height: 32, bgcolor: `hsl(${i * 37 % 360},60%,60%)`, fontSize: '0.8rem', fontWeight: 700 }}>
+                              {s.name.charAt(0)}
+                            </Avatar>
+                            <Typography sx={{ fontSize: '0.85rem', fontWeight: 600 }}>{s.name}</Typography>
+                          </Box>
+                        </TableCell>
+                        <TableCell sx={{ fontSize: '0.82rem', fontFamily: 'monospace' }}>{s.rollNo}</TableCell>
+                        <TableCell>
+                          <Chip
+                            label={status}
+                            size="small"
+                            icon={status === 'present' ? <CheckCircle sx={{ fontSize: '14px!important' }} /> : status === 'absent' ? <Cancel sx={{ fontSize: '14px!important' }} /> : <AccessTime sx={{ fontSize: '14px!important' }} />}
+                            sx={{
+                              fontWeight: 600, fontSize: '0.72rem', textTransform: 'capitalize',
+                              bgcolor: status === 'present' ? 'rgba(34,197,94,0.12)' : status === 'absent' ? 'rgba(239,68,68,0.12)' : 'rgba(245,158,11,0.12)',
+                              color: status === 'present' ? '#22c55e' : status === 'absent' ? '#ef4444' : '#f59e0b',
+                            }}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Box sx={{ display: 'flex', gap: 0.5 }}>
+                            {['present', 'absent', 'late'].map(st => (
+                              <Button key={st} size="small" variant={status === st ? 'contained' : 'outlined'}
+                                onClick={() => setStatus(s.id, st)}
+                                sx={{
+                                  minWidth: 0, px: 1, py: 0.3, fontSize: '0.7rem', textTransform: 'capitalize',
+                                  borderColor: st === 'present' ? '#22c55e' : st === 'absent' ? '#ef4444' : '#f59e0b',
+                                  color: status === st ? 'white' : st === 'present' ? '#22c55e' : st === 'absent' ? '#ef4444' : '#f59e0b',
+                                  bgcolor: status === st ? (st === 'present' ? '#22c55e' : st === 'absent' ? '#ef4444' : '#f59e0b') : 'transparent',
+                                  '&:hover': { bgcolor: st === 'present' ? '#22c55e20' : st === 'absent' ? '#ef444420' : '#f59e0b20' },
+                                }}>
+                                {st.charAt(0).toUpperCase()}
+                              </Button>
+                            ))}
+                          </Box>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </TableContainer>
           </Card>
+        </>
+      )}
+
+      {tab === 1 && (
+        <Grid container spacing={2.5}>
+          <Grid item xs={12} md={8}>
+            <Card sx={{ borderRadius: 3 }}>
+              <CardContent sx={{ p: 2.5 }}>
+                <Typography sx={{ fontWeight: 700, mb: 2 }}>Class-wise Attendance %</Typography>
+                <ResponsiveContainer width="100%" height={280}>
+                  <BarChart data={mockClassAttendance} margin={{ top: 5, right: 5, left: -15, bottom: 60 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} vertical={false} />
+                    <XAxis dataKey="class" tick={{ fill: theme.palette.text.secondary, fontSize: 10 }} angle={-40} textAnchor="end" axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: theme.palette.text.secondary, fontSize: 11 }} axisLine={false} tickLine={false} domain={[0, 100]} />
+                    <ChartTooltip contentStyle={TTStyle} formatter={v => `${v}%`} />
+                    <Bar dataKey="attendance" fill="#4f46e5" radius={[6, 6, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Card sx={{ borderRadius: 3, height: '100%' }}>
+              <CardContent sx={{ p: 2.5 }}>
+                <Typography sx={{ fontWeight: 700, mb: 2 }}>Weekly Trend</Typography>
+                <ResponsiveContainer width="100%" height={280}>
+                  <AreaChart data={mockWeeklyAttendance.thisWeek} margin={{ top: 5, right: 5, left: -15, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="attGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#22c55e" stopOpacity={0.3} />
+                        <stop offset="100%" stopColor="#22c55e" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} vertical={false} />
+                    <XAxis dataKey="day" tick={{ fill: theme.palette.text.secondary, fontSize: 12 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: theme.palette.text.secondary, fontSize: 11 }} axisLine={false} tickLine={false} />
+                    <ChartTooltip contentStyle={TTStyle} />
+                    <Area type="monotone" dataKey="count" fill="url(#attGrad)" stroke="#22c55e" strokeWidth={2.5} dot={false} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12}>
+            <Card sx={{ borderRadius: 3 }}>
+              <CardContent sx={{ p: 2.5 }}>
+                <Typography sx={{ fontWeight: 700, mb: 2 }}>Monthly Attendance Trend</Typography>
+                <ResponsiveContainer width="100%" height={220}>
+                  <LineChart data={mockMonthlyAttendance} margin={{ top: 5, right: 5, left: -15, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} vertical={false} />
+                    <XAxis dataKey="month" tick={{ fill: theme.palette.text.secondary, fontSize: 12 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: theme.palette.text.secondary, fontSize: 11 }} axisLine={false} tickLine={false} />
+                    <ChartTooltip contentStyle={TTStyle} />
+                    <Legend wrapperStyle={{ fontSize: 12 }} />
+                    <Line type="monotone" dataKey="present" stroke="#22c55e" strokeWidth={2.5} dot={false} name="Present" />
+                    <Line type="monotone" dataKey="absent" stroke="#ef4444" strokeWidth={2.5} dot={false} name="Absent" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </Grid>
         </Grid>
-        <Grid item xs={6} sm={3}>
-          <Card sx={{ p: 2, textAlign: 'center', background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)', color: 'white' }}>
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>
-              {attendance.length}
-            </Typography>
-            <Typography variant="caption">Total</Typography>
-          </Card>
-        </Grid>
-        <Grid item xs={6} sm={3}>
-          <Card sx={{ p: 2, textAlign: 'center', background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)', color: 'white' }}>
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>
-              {attendancePercentage}%
-            </Typography>
-            <Typography variant="caption">Percentage</Typography>
-          </Card>
-        </Grid>
-      </Grid>
+      )}
 
-      {/* Attendance Table */}
-      <Card sx={{ p: 3 }}>
-        <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
-          Mark Attendance for {selectedClass}
-        </Typography>
+      {tab === 2 && (
+        <Card sx={{ borderRadius: 3 }}>
+          <CardContent sx={{ p: 2.5 }}>
+            <Typography sx={{ fontWeight: 700, mb: 2.5 }}>Monthly Attendance Report</Typography>
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow sx={{ bgcolor: 'background.default' }}>
+                    {['Month', 'Present', 'Absent', 'Attendance %', 'Status'].map(h => (
+                      <TableCell key={h} sx={{ fontSize: '0.72rem', fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase' }}>{h}</TableCell>
+                    ))}
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {mockMonthlyAttendance.map(m => {
+                    const pct = Math.round((m.present / (m.present + m.absent)) * 100);
+                    return (
+                      <TableRow key={m.month} sx={{ '&:hover': { bgcolor: 'action.hover' } }}>
+                        <TableCell sx={{ fontWeight: 600 }}>{m.month}</TableCell>
+                        <TableCell sx={{ color: 'success.main', fontWeight: 600 }}>{m.present}</TableCell>
+                        <TableCell sx={{ color: 'error.main', fontWeight: 600 }}>{m.absent}</TableCell>
+                        <TableCell>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <LinearProgress variant="determinate" value={pct} sx={{ flex: 1, height: 6, borderRadius: 3 }} />
+                            <Typography sx={{ fontSize: '0.8rem', fontWeight: 700, minWidth: 36 }}>{pct}%</Typography>
+                          </Box>
+                        </TableCell>
+                        <TableCell><Chip label={pct >= 90 ? 'Excellent' : pct >= 80 ? 'Good' : 'Needs Attention'} size="small" color={pct >= 90 ? 'success' : pct >= 80 ? 'warning' : 'error'} sx={{ fontSize: '0.7rem' }} /></TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </CardContent>
+        </Card>
+      )}
 
-        <TableContainer sx={{ maxHeight: 500 }}>
-          <Table stickyHeader>
-            <TableHead sx={{ backgroundColor: 'rgba(79, 70, 229, 0.05)' }}>
-              <TableRow>
-                <TableCell sx={{ fontWeight: 700 }}>Roll No.</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>Name</TableCell>
-                <TableCell sx={{ fontWeight: 700, textAlign: 'center' }}>Status</TableCell>
-                <TableCell sx={{ fontWeight: 700, textAlign: 'center' }}>Action</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {attendance.map((record, index) => (
-                <TableRow key={record.studentId} hover>
-                  <TableCell>{String(index + 1).padStart(2, '0')}</TableCell>
-                  <TableCell>{record.name}</TableCell>
-                  <TableCell sx={{ textAlign: 'center' }}>
-                    <Chip
-                      label={record.status === 'present' ? 'Present' : 'Absent'}
-                      color={record.status === 'present' ? 'success' : 'error'}
-                      size="small"
-                    />
-                  </TableCell>
-                  <TableCell sx={{ textAlign: 'center' }}>
-                    <Switch
-                      checked={record.status === 'present'}
-                      onChange={() => handleAttendanceToggle(record.studentId)}
-                    />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-
-        <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
-          <Button
-            variant="contained"
-            startIcon={<SaveIcon />}
-            sx={{ background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)' }}
-          >
-            Save Attendance
-          </Button>
-          <Button
-            variant="outlined"
-            startIcon={<UndoIcon />}
-            onClick={() => handleClassChange(selectedClass)}
-          >
-            Reset
-          </Button>
-        </Box>
-      </Card>
-
-      {/* Analytics */}
-      <Card sx={{ p: 3 }}>
-        <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
-          Attendance Analytics
-        </Typography>
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={mockAttendanceData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="day" />
-            <YAxis />
-            <ChartTooltip />
-            <Line type="monotone" dataKey="percentage" stroke="#4F46E5" strokeWidth={2} dot={{ fill: '#4F46E5' }} />
-          </LineChart>
-        </ResponsiveContainer>
-      </Card>
+      <Snackbar open={toast.open} autoHideDuration={3000} onClose={() => setToast(t => ({ ...t, open: false }))} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
+        <Alert severity="success" sx={{ borderRadius: 2 }}>{toast.msg}</Alert>
+      </Snackbar>
     </Box>
   );
 }

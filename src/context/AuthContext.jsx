@@ -1,47 +1,51 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext();
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within AuthProvider');
-  }
+  if (!context) throw new Error('useAuth must be used within AuthProvider');
   return context;
 };
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+const USERS = {
+  'admin@schoolerp.demo':   { password: 'Admin@123',   role: 'admin',   name: 'Admin User',       avatar: 'A' },
+  'student@schoolerp.demo': { password: 'Student@123', role: 'student', name: 'Aarav Sharma',      avatar: 'A' },
+  'teacher@schoolerp.demo': { password: 'Teacher@123', role: 'teacher', name: 'Dr. Sanjay Kumar',  avatar: 'S' },
+};
 
-  const login = (email, password, role) => {
-    // Mock authentication
-    if (
-      (email === 'admin@schoolerp.demo' && password === 'Admin@123') ||
-      (email === 'student@schoolerp.demo' && password === 'Student@123') ||
-      (email === 'teacher@schoolerp.demo' && password === 'Teacher@123')
-    ) {
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('erp_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch { return null; }
+  });
+
+  const login = (email, password) => {
+    const match = USERS[email];
+    if (match && match.password === password) {
       const userData = {
         email,
-        role,
-        name: role === 'admin' ? 'Admin' : role === 'student' ? 'Student' : 'Teacher',
+        role: match.role,
+        name: match.name,
+        avatar: match.avatar,
         id: Math.random().toString(36).substr(2, 9),
       };
       setUser(userData);
-      localStorage.setItem('user', JSON.stringify(userData));
-      return true;
+      localStorage.setItem('erp_user', JSON.stringify(userData));
+      return { success: true, role: match.role };
     }
-    return false;
+    return { success: false };
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('user');
+    localStorage.removeItem('erp_user');
   };
 
-  const isAuthenticated = !!user;
-
   return (
-    <AuthContext.Provider value={{ user, login, logout, isAuthenticated }}>
+    <AuthContext.Provider value={{ user, login, logout, isAuthenticated: !!user }}>
       {children}
     </AuthContext.Provider>
   );
